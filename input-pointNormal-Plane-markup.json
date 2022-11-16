@@ -1,0 +1,38 @@
+{
+    "@schema": "https://raw.githubusercontent.com/slicer/slicer/master/Modules/Loadable/Markups/Resources/Schema/markups-schema-v1.0.3.json#",
+    "markups": [
+        {
+            "type": "Plane",
+            "coordinateSystem": "LPS",
+            "coordinateUnits": "mm",
+            "locked": false,
+            "fixedNumberOfControlPoints": false,
+            "labelFormat": "%N-%d",
+            "lastUsedControlPointNumber": 1,
+            "planeType": "pointNormal",
+            "sizeMode": "auto",
+            "autoScalingFactor": 1.0,
+            "center": [-4.195577, 18.3518, -17.54164],
+            "normal": [-0.0, -0.0, 1.0],
+            "objectToBase": [-1.0, -0.0, -0.0, -0.0, -0.0, -1.0, -0.0, -0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+            "baseToNode": [-1.0, -0.0, -0.0, -4.195577, -0.0, -1.0, -0.0, 18.3518, 0.0, 0.0, 1.0, -17.54164, 0.0, 0.0, 0.0, 1.0],
+            "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+            "size": [100.0, 100.0, 0.0],
+            "planeBounds": [-50.0, 50.0, -50.0, 50.0],
+            "controlPoints": [
+                {
+                    "id": "1",
+                    "label": "Plane_RAS-1",
+                    "description": "",
+                    "associatedNodeID": "",
+                    "position": [-4.195577, 18.3518, -17.54164],
+                    "orientation": [-1.0, -0.0, -0.0, -0.0, -1.0, -0.0, 0.0, 0.0, 1.0],
+                    "selected": true,
+                    "locked": false,
+                    "visibility": true,
+                    "positionStatus": "defined"
+                }
+            ]
+        }
+    ]
+}
