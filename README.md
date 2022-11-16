@@ -1,6 +1,8 @@
 # venus-integration
 Code to process data for integrating acquisition planning with VENUS
 
+## Steps
+
 ### Step 1. create mrml scene (`slicer` is a bashrc alias for `/Applications/Slicer.app/Contents/MacOS/Slicer`)
 `slicer input-pointNormal-Plane-markup.json`
 Make sure to save the scene (default name but local directory, e.g. `2022-11-16-Scene.mrml`)
@@ -15,4 +17,8 @@ Usage: ./sct_plane_select.sh img.nii.gz contrast upper_vert lower_vert
 
 ### Step 4. Select your N slices (equidistant along centerline) and compute their planes orthogonal to centerline
 python slice_select.py t2.nii.gz t2_seg.nii.gz t2_boundary.nii.gz t2 5
+
+## Data
+
+`t2.nii.gz` was downloaded from the SCT t2 single subject tutorial: https://spinalcordtoolbox.com/user_section/tutorials/segmentation/before-starting.html
 
