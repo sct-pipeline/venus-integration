@@ -42,3 +42,34 @@ class pointNormalPlane(object):
             with open(f'{filename}.json', "w") as f:
                 f.write(new_plane_dict_json)
 
+def get_orthog_plane(im, ctl, arr_ctl_der,iz,min_z_index,orientation):
+    """
+    Function to compute and save a point-normal plane that is orthogonal to the centerline at the slice of interest
+
+    :param im:
+    :param ctl:
+    :param arr_ctl_der:
+    :param iz:
+    :param min_z_index:
+    :param orientation:
+    :return: pointNormalPlane instance
+    """
+    # next 5 lines from from spinalcordtoolbox.process_seg import compute_shape
+    nx, ny, nz, nt, px, py, pz, pt = im.dim
+    # Extract tangent vector to the centerline (i.e. its derivative)
+    tangent_vect = np.array([arr_ctl_der[0][iz + min_z_index] * px, arr_ctl_der[1][iz + min_z_index] * py, pz])
+    # Normalize vector by its L2 norm
+    tangent_vect_norm = tangent_vect / np.linalg.norm(tangent_vect)
+    
+    # Find two vectors orthogonal to the tangent
+    orthog_vect_1 = [-tangent_vect_norm[2],0,tangent_vect_norm[0]]
+    orthog_vect_2 = [0,-tangent_vect_norm[2],tangent_vect_norm[1]]
+    norm=list(np.cross(orthog_vect_1,orthog_vect_2))
+    
+    # Find origin in anatomical space, RAS orientation
+    origin_sct_im_RPI = list(ctl.get_point_from_index(iz))
+    origin_sct_im_orient_dest = list(Coordinate(origin_sct_im_RPI).permute(im.change_orientation('RPI'), orient_dest=orientation))
+    origin_anat_orient_dest=list(im.change_orientation(orientation).transfo_pix2phys([origin_sct_im_orient_dest])[0])
+ 
+    return(pointNormalPlane(origin=list(origin_anat_orient_dest), normal=norm,orientation=orientation,space='anatomical'))
+
