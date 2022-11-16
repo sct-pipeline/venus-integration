@@ -150,4 +150,14 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
         os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py markup_plane_orthog_RAS_{str(iz+min_z_index)}.json {plane_orthog.origin[0]} {plane_orthog.origin[1]} {plane_orthog.origin[2]} {plane_orthog.normal[0]} {plane_orthog.normal[1]} {plane_orthog.normal[2]}')
     if not os.path.exists(f"{image_contrast}_ctl.nii.gz"): im_centerline.change_orientation(native_orientation).save(f"{image_contrast}_ctl.nii.gz")
 
+def main():
+    slices_z = slice_select(image, image_seg, image_boundary,image_contrast, N_slices)
+
+if __name__ == "__main__":
+    image = str(sys.argv[1])
+    image_seg = str(sys.argv[2])
+    image_boundary = str(sys.argv[3])
+    image_contrast = str(sys.argv[4])
+    N_slices = int(sys.argv[5])
+    main()
 
