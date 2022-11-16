@@ -73,3 +73,81 @@ def get_orthog_plane(im, ctl, arr_ctl_der,iz,min_z_index,orientation):
  
     return(pointNormalPlane(origin=list(origin_anat_orient_dest), normal=norm,orientation=orientation,space='anatomical'))
 
+
+def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
+    """
+    Function to compute the z-indices (in SCT image space) of N slices that are equidistant along the centerline
+    and output a point-normal plane that is orthogonal to the centerline at each slice of interest
+
+    :param image: anatomical image (e.g. t2.nii.gz)
+    :param image_seg: spinal cord segmentation of image (e.g. t2_seg.nii.gz)
+    :param image_boundary: labels  of vertebra between which the N slices are to be qcomputed (e.g. t2_boundary.nii.gz)
+    :param image_contrast: string (e.g. t1, t2)
+    :param N_slices: int
+    :return: generic point-normal plane .json file and point-normal plane markup .json file that can be read by 3D slicer
+    """
+
+    # Make sure all of the anatomical (ie nifti) files are in the same orientation
+    if not (Image(image).orientation == Image(image_seg).orientation == Image(image_boundary).orientation): 
+        print("Your input NIFTI files are not defined in the same anatomical space!")
+        exit
+
+    native_orientation = Image(image).orientation
+    # Load anatomical files (e.g. NIFTI) into Image object and change orientation to RPI (what the SCT tools use)
+    im = Image(image).change_orientation('RPI')
+    im_seg = Image(image_seg).change_orientation('RPI')
+    im_boundary = Image(image_boundary).change_orientation('RPI') 
+
+    # Get z-index in image space of lower and upper bound within which we want to obtain our N slices (use this to create z_ref within which centerline will be computed)
+    X, Y, Z = (im_boundary.data > NEAR_ZERO_THRESHOLD).nonzero()
+    min_z_index, max_z_index = min(Z), max(Z) # equiv: im_boundary.getNonZeroCoordinates()[0].z, im_boundary.getNonZeroCoordinates()[1].z
+    z_ref = np.array(range(min_z_index,max_z_index+1))
+
+    # Get centerline
+    param_centerline = ParamCenterline(algo_fitting='optic',contrast=image_contrast) 
+    im_centerline, arr_ctl, arr_ctl_der,fit_results = get_centerline(im,param=param_centerline, verbose=1) # ISSUE: why does fit_results output NoneType?
+    
+    # Create Centerline object within min_z_index and max_z_index
+    ctl = Centerline(points_x=arr_ctl[0,z_ref],points_y=arr_ctl[1,z_ref],points_z=arr_ctl[2,z_ref], deriv_x=arr_ctl_der[0,z_ref],deriv_y=arr_ctl_der[1,z_ref],deriv_z=arr_ctl_der[2,z_ref])
+
+    # Find N slices that are approximately equidistant along the centerline (NOT along S-I axis!)
+    dist_between_slices = float(ctl.length/(N_slices)-1)
+    slices_z=[]
+    interslice_dist=[]
+    slices_z.append(0)
+    slice_i=1
+    i=0
+    with open('info.txt', 'w') as f:
+        f.write(f"Average distance between slices: {round(dist_between_slices,2)}\n")  # Sanity check!
+    while slice_i < N_slices:
+        dist_upper=0
+        dist_lower=0
+        while (dist_upper < dist_between_slices) and (i < len(ctl.progressive_length)):
+            dist_upper+= ctl.progressive_length[i]
+            i+=1
+        dist_lower = dist_upper - ctl.progressive_length[i-1]
+        f.write(f"Dist range: {round(dist_lower,2)} at {i-1} to {round(dist_upper,2)} at {i}") # Sanity check!
+        if (abs(dist_upper-dist_between_slices) < abs(dist_lower-dist_between_slices)):
+            slices_z.append(i)
+            interslice_dist.append(dist_upper)
+        else:
+            slices_z.append(i-1)                
+            interslice_dist.append(dist_lower)
+        slice_i+= 1
+    f.close()
+    slices_z = np.array(slices_z)
+    slice_coords_im_RPI = [] 
+    slice_coords_anat_RPI = []
+    for iz in slices_z:
+        sct_im_RPI = list(ctl.get_point_from_index(iz))
+        sct_im_RAS = list(Coordinate(sct_im_RPI).permute(im.change_orientation('RPI'), orient_dest='RAS'))
+        anat_RAS=list(im.change_orientation('RAS').transfo_pix2phys([sct_im_RAS])[0])
+        plane_slice = pointNormalPlane(anat_RAS,[0,0,1],'RAS',space='anatomical')
+        plane_slice.write_plane_json(f"plane_slice_RAS_{str(iz+min_z_index)}.json")
+        os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py markup_plane_slice_RAS_{str(iz+min_z_index)}.json {plane_slice.origin[0]} {plane_slice.origin[1]} {plane_slice.origin[2]} {plane_slice.normal[0]} {plane_slice.normal[1]} {plane_slice.normal[2]}')
+        plane_orthog=get_orthog_plane(im, ctl, arr_ctl_der,iz,min_z_index,'RAS')
+        plane_orthog.write_plane_json(f"plane_orthog_RAS_{str(iz+min_z_index)}.json")
+        os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py markup_plane_orthog_RAS_{str(iz+min_z_index)}.json {plane_orthog.origin[0]} {plane_orthog.origin[1]} {plane_orthog.origin[2]} {plane_orthog.normal[0]} {plane_orthog.normal[1]} {plane_orthog.normal[2]}')
+    if not os.path.exists(f"{image_contrast}_ctl.nii.gz"): im_centerline.change_orientation(native_orientation).save(f"{image_contrast}_ctl.nii.gz")
+
+
