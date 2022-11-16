@@ -21,5 +21,5 @@ filename=f'{os.getcwd()}/{fname_out}'
 print(f'filename: {filename}')
 myStorageNode.SetFileName(filename)
 myStorageNode.WriteData(input_Node)
-
+myStorageNode.UnRegister(None)
 sys.exit(0)
