@@ -1,5 +1,14 @@
 
+# Load Packages
+import sys
+import os
+NEAR_ZERO_THRESHOLD = 1e-6
 import json
+from spinalcordtoolbox.image import Image
+from skimage import transform
+from spinalcordtoolbox.centerline.core import find_and_sort_coord, ParamCenterline, get_centerline, FitResults
+import numpy as np
+from spinalcordtoolbox.types import Centerline, Coordinate
 
 class pointNormalPlane(object):
     """
