@@ -117,8 +117,8 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
     slices_z.append(0)
     slice_i=1
     i=0
-    with open('info.txt', 'w') as f:
-        f.write(f"Average distance between slices: {round(dist_between_slices,2)}\n")  # Sanity check!
+    f = open('info.txt', 'w')
+    f.write(f"Average distance between slices: {round(dist_between_slices,2)}\n")  # Sanity check!
     while slice_i < N_slices:
         dist_upper=0
         dist_lower=0
@@ -126,7 +126,7 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
             dist_upper+= ctl.progressive_length[i]
             i+=1
         dist_lower = dist_upper - ctl.progressive_length[i-1]
-        f.write(f"Dist range: {round(dist_lower,2)} at {i-1} to {round(dist_upper,2)} at {i}") # Sanity check!
+        f.write(f"Dist range: {round(dist_lower,2)} at index {i-1} to {round(dist_upper,2)} at index {i}\n") # Sanity check!
         if (abs(dist_upper-dist_between_slices) < abs(dist_lower-dist_between_slices)):
             slices_z.append(i)
             interslice_dist.append(dist_upper)
@@ -134,11 +134,12 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
             slices_z.append(i-1)                
             interslice_dist.append(dist_lower)
         slice_i+= 1
-    f.close()
     slices_z = np.array(slices_z)
     slice_coords_im_RPI = [] 
     slice_coords_anat_RPI = []
+    f.write(f"\nIndices along z in image space: ")
     for iz in slices_z:
+        f.write(f"{iz} ")
         sct_im_RPI = list(ctl.get_point_from_index(iz))
         sct_im_RAS = list(Coordinate(sct_im_RPI).permute(im.change_orientation('RPI'), orient_dest='RAS'))
         anat_RAS=list(im.change_orientation('RAS').transfo_pix2phys([sct_im_RAS])[0])
@@ -149,6 +150,7 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
         plane_orthog.write_plane_json(f"plane_orthog_RAS_{str(iz+min_z_index)}.json")
         os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py markup_plane_orthog_RAS_{str(iz+min_z_index)}.json {plane_orthog.origin[0]} {plane_orthog.origin[1]} {plane_orthog.origin[2]} {plane_orthog.normal[0]} {plane_orthog.normal[1]} {plane_orthog.normal[2]}')
     if not os.path.exists(f"{image_contrast}_ctl.nii.gz"): im_centerline.change_orientation(native_orientation).save(f"{image_contrast}_ctl.nii.gz")
+    f.close()
 
 def main():
     slices_z = slice_select(image, image_seg, image_boundary,image_contrast, N_slices)
