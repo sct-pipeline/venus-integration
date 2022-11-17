@@ -2,15 +2,27 @@
 Code to process data for integrating acquisition planning with VENUS
 
 ## How?
-### Step 1. Preprocessing your data
+### Step 1. Set up your directory structure
+```
+input/
+	2022-11-16-Scene.mrml
+	input-pointNormal-Plane-markup.json
+	input-anatomical-image.nii.gz (e.g. t2.nii.gz)
+output/
+preprocessing.sh
+slice_select.py
+write_slicer_markup_json.py
+```
+
+### Step 2. Preprocessing your data
 Label the spinal cord, vertebrae and vertebral boundaries within which you want to compute your slices. \
-Usage: ./preprocessing.sh anatomical_image.nii.gz contrast upper_vertebra upper_vertebra \
+Usage: `./preprocessing.sh anatomical_image.nii.gz contrast upper_vertebra upper_vertebra` \
 Labels (integer values) corresponding to each vertebra and disc can be found [here](https://spinalcordtoolbox.com/user_section/tutorials/registration-to-template/vertebral-labeling/labeling-conventions.html).
 ```
 ./preprocessing.sh t2.nii.gz t2 2 5
 ```
 
-### Step 2. Slice selection and orthogonal plane generation
+### Step 3. Slice selection and orthogonal plane generation
 Find the indices of N slices (N = 5 in this example) that are equidistant along the centerline. \
 At each slice, compute a plane that is orthogonal to the centerline. 
 ```
