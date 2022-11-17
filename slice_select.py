@@ -86,7 +86,7 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
     :param N_slices: int
     :return: generic point-normal plane .json file and point-normal plane markup .json file that can be read by 3D slicer
     """
-
+    os.chdir('data')
     # Make sure all of the anatomical (ie nifti) files are in the same orientation
     if not (Image(image).orientation == Image(image_seg).orientation == Image(image_boundary).orientation): 
         print("Your input NIFTI files are not defined in the same anatomical space!")

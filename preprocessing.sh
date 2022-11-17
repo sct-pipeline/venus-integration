@@ -10,6 +10,8 @@ contrast=$2
 upper_vert=$3
 lower_vert=$4
 
+cd data
+
 # Label SC (w/ deep learning, instead of sct_prop_seg)
 sct_deepseg_sc -i $input_img -c $contrast -o $(basename $input_img .nii.gz)_seg.nii.gz
 
