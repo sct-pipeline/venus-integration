@@ -30,6 +30,7 @@ python slice_select.py t2.nii.gz t2_seg.nii.gz t2_boundary.nii.gz t2 5
 ```
 
 ## Input
-* `input/t2.nii.gz` was downloaded from the [SCT t2 single subject tutorial](https://spinalcordtoolbox.com/user_section/tutorials/segmentation/before-starting.html). \
-* `input/2022-11-16-Scene.mrml`: necessary to generate the planes as a markup file that can be read by slicer. \
-* `input/input-pointNormal-Plane-markup.json`: necessary to generate the planes as a markup file that can be read by slicer.	
+* `input/t2.nii.gz` was downloaded from the [SCT t2 single subject tutorial](https://spinalcordtoolbox.com/user_section/tutorials/segmentation/before-starting.html).
+* `input/2022-11-16-Scene.mrml`: necessary to generate the planes as a markup file that can be read by slicer.
+* `input/input-pointNormal-Plane-markup.json`: necessary to generate the planes as a markup file that can be read by slicer.
+
