@@ -126,13 +126,15 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
             dist_upper+= ctl.progressive_length[i]
             i+=1
         dist_lower = dist_upper - ctl.progressive_length[i-1]
-        f.write(f"Dist range: {round(dist_lower,2)} at index {i-1} to {round(dist_upper,2)} at index {i}\n") # Sanity check!
+        f.write(f"Current interslice distance can range from {round(dist_lower,2)} (index {i-1}) to {round(dist_upper,2)} (index {i})\n") # Sanity check!
         if (abs(dist_upper-dist_between_slices) < abs(dist_lower-dist_between_slices)):
             slices_z.append(i)
             interslice_dist.append(dist_upper)
+            f.write(f"Current centerline incremental length: {ctl.incremental_length[i]}\n")
         else:
             slices_z.append(i-1)                
             interslice_dist.append(dist_lower)
+            f.write(f"Current centerline incremental length: {ctl.incremental_length[i-1]}\n")
         slice_i+= 1
     slices_z = np.array(slices_z)
     slice_coords_im_RPI = [] 
