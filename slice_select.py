@@ -59,12 +59,7 @@ def get_orthog_plane(im, ctl, arr_ctl_der,iz,min_z_index,orientation):
     # Extract tangent vector to the centerline (i.e. its derivative)
     tangent_vect = np.array([arr_ctl_der[0][iz + min_z_index] * px, arr_ctl_der[1][iz + min_z_index] * py, pz])
     # Normalize vector by its L2 norm
-    tangent_vect_norm = tangent_vect / np.linalg.norm(tangent_vect)
-    
-    # Find two vectors orthogonal to the tangent
-    orthog_vect_1 = [-tangent_vect_norm[2],0,tangent_vect_norm[0]]
-    orthog_vect_2 = [0,-tangent_vect_norm[2],tangent_vect_norm[1]]
-    norm=list(np.cross(orthog_vect_1,orthog_vect_2))
+    norm = tangent_vect / np.linalg.norm(tangent_vect)
     
     # Find origin in anatomical space, RAS orientation
     origin_sct_im_RPI = list(ctl.get_point_from_index(iz))
