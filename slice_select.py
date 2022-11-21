@@ -132,8 +132,6 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
             f.write(f"Current centerline incremental length: {ctl.incremental_length[i-1]}\n")
         slice_i+= 1
     slices_z = np.array(slices_z)
-    slice_coords_im_RPI = [] 
-    slice_coords_anat_RPI = []
     f.write(f"\nIndices along z in image space: ")
     for iz in slices_z:
         f.write(f"{iz} ")
