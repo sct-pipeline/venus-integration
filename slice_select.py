@@ -69,7 +69,7 @@ def get_orthog_plane(im, ctl, arr_ctl_der,iz,min_z_index,orientation):
     return(pointNormalPlane(origin=list(origin_anat_orient_dest), normal=norm,orientation=orientation,space='anatomical'))
 
 
-def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
+def slice_select(image, image_seg, image_boundary, image_contrast,N_slices,slicer_markup=True):
     """
     Function to compute the z-indices (in SCT image space) of N slices that are equidistant along the centerline
     and output a point-normal plane that is orthogonal to the centerline at each slice of interest
@@ -140,15 +140,15 @@ def slice_select(image, image_seg, image_boundary, image_contrast,N_slices):
         anat_RAS=list(im.change_orientation('RAS').transfo_pix2phys([sct_im_RAS])[0])
         plane_slice = pointNormalPlane(anat_RAS,[0,0,1],'RAS',space='anatomical')
         plane_slice.write_plane_json(f"output/plane_slice_RAS_{str(iz+min_z_index)}.json")
-        os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py markup_plane_slice_RAS_{str(iz+min_z_index)}.json {plane_slice.origin[0]} {plane_slice.origin[1]} {plane_slice.origin[2]} {plane_slice.normal[0]} {plane_slice.normal[1]} {plane_slice.normal[2]}')
+        if slicer_markup: os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py markup_plane_slice_RAS_{str(iz+min_z_index)}.json {plane_slice.origin[0]} {plane_slice.origin[1]} {plane_slice.origin[2]} {plane_slice.normal[0]} {plane_slice.normal[1]} {plane_slice.normal[2]}')
         plane_orthog=get_orthog_plane(im, ctl, arr_ctl_der,iz,min_z_index,'RAS')
         plane_orthog.write_plane_json(f"output/plane_orthog_RAS_{str(iz+min_z_index)}.json")
-        os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py markup_plane_orthog_RAS_{str(iz+min_z_index)}.json {plane_orthog.origin[0]} {plane_orthog.origin[1]} {plane_orthog.origin[2]} {plane_orthog.normal[0]} {plane_orthog.normal[1]} {plane_orthog.normal[2]}')
+        if slicer_markup: os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py markup_plane_orthog_RAS_{str(iz+min_z_index)}.json {plane_orthog.origin[0]} {plane_orthog.origin[1]} {plane_orthog.origin[2]} {plane_orthog.normal[0]} {plane_orthog.normal[1]} {plane_orthog.normal[2]}')
     if not os.path.exists(f"output/{image_contrast}_ctl.nii.gz"): im_centerline.change_orientation(native_orientation).save(f"output/{image_contrast}_ctl.nii.gz")
     f.close()
 
 def main():
-    slices_z = slice_select(image, image_seg, image_boundary,image_contrast, N_slices)
+    slices_z = slice_select(image, image_seg, image_boundary,image_contrast, N_slices,slicer_markup)
 
 if __name__ == "__main__":
     image = str(sys.argv[1])
@@ -156,5 +156,7 @@ if __name__ == "__main__":
     image_boundary = str(sys.argv[3])
     image_contrast = str(sys.argv[4])
     N_slices = int(sys.argv[5])
+    if len(sys.argv) > 6 and str(sys.argv[6]).lower() == 'false': slicer_markup = False
+    else: slicer_markup=True
     main()
 
