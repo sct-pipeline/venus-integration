@@ -39,7 +39,7 @@ fname_in = sys.argv[1]
 plane=pointNormalPlane.fromJsonFile(sys.argv[1])
 print(plane.normal)
 print(plane.origin)
-slicer.util.loadScene('../../../input/2022-11-16-Scene.mrml')
+slicer.util.loadScene('../../../slicer_data/2022-11-16-Scene.mrml')
 input_Node = getNode("input-pointNormal-Plane-markup")
 
 print(f'input plane normal: {input_Node.GetNormal()}')
