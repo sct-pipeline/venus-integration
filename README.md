@@ -2,17 +2,23 @@
 Code to process data for integrating acquisition planning with VENUS
 
 ## How?
-### Step 1. Set up your directory structure
+
+### Step 1. Dataset structure
+The dataset should be arranged according to the BIDS convention. Using the two examples subjects listed in the `configuration.json` template file, this would be as follows:
 ```
-input/
-	2022-11-16-Scene.mrml
-	input-pointNormal-Plane-markup.json
-	input-anatomical-image.nii.gz (e.g. t2.nii.gz)
-output/
-preprocessing.sh
-slice_select.py
-write_slicer_markup_json.py
+dataset/
+└── dataset_description.json
+└── participants.tsv  <-------------------------------- Metadata describing subjects attributes e.g. sex, age, etc.
+└── sub-01  <------------------------------------------ Folder enclosing data for subject 1
+└── sub-02
+└── sub-03
+    └── anat <----------------------------------------- `anat` can be replaced by the value of `data_type` in configuration.json
+        └── sub-03_T1w.nii.gz  <----------------------- MRI image in NIfTI format; `_T1w` can be replaced by the value of `suffix_image` in configuration.json
+        └── sub-03_T1w.json  <------------------------- Metadata including image parameters, MRI vendor, etc.
+        └── sub-03_T2w.nii.gz
+        └── sub-03_T2w.json
 ```
+
 
 ### Step 2. Preprocessing your data
 Label the spinal cord, vertebrae and vertebral boundaries within which you want to compute your slices. \
