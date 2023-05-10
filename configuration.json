@@ -1,0 +1,7 @@
+{
+	"path_data": "../data-2022-11-17/nadia",
+	"subjects": "sub-nadia",
+	"data_type":"ses-iso1mm/anat",
+	"contrast":"t1",
+	"suffix_image": "_ses-iso1mm_T1w",
+}
