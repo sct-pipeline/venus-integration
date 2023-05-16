@@ -95,6 +95,9 @@ def segment_sc(dataset_info, regenerate = False):
 def label_vertebrae(dataset_info, regenerate = False):
     """
     This function labels the vertebral levels and intervertebral discs along the spinal cord and outputs the labels in BIDS format.
+    If the intervertebral discs were manually corrected, make sure that there only exists an intervertebral disc label file
+        (and delete the vertebral level file), such that the pipeline will regenerate the intervertebral level label file according
+        to the corrected segmentations.
     This function also makes sure the user has performed their quality control before moving on to the next step.
     :param dataset_info: configuration file loaded into dictionary by read_dataset function.
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
