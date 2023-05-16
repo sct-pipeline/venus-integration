@@ -62,6 +62,7 @@ def segment_sc(dataset_info, regenerate = False):
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
     """
 
+    qc_complete = False
     ofolder_qc = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/qc/'
 
     for subject in dataset_info['subjects'].split(', '):
@@ -81,10 +82,11 @@ def segment_sc(dataset_info, regenerate = False):
         if regenerate or not os.path.exists(im_seg): 
             print(f'Generating spinal cord mask for subject {subject} here: {ofolder}')
             sct_deepseg_sc.main(['-i', im, '-c', dataset_info['contrast'], '-o', im_seg, '-qc', ofolder_qc])
-        else: print(f'Spinal cord label for subject {subject} already exists!\n')
+        else:
+            print(f'Spinal cord label for subject {subject} already exists!\n')
+            qc_complete = True
     
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    qc_complete = False
     print('Label quality control found here: ' + ofolder_qc)
     while not qc_complete: 
         user_input = input('Did you quality control the data? [Y]es/[N]o: ')
@@ -98,6 +100,7 @@ def label_vertebrae(dataset_info, regenerate = False):
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
     """
 
+    qc_complete = False
     ofolder_qc = dataset_info['path_data'] + '/derivatives/sct_label_vertebrae/qc/'
 
     for subject in dataset_info['subjects'].split(', '):
@@ -122,10 +125,11 @@ def label_vertebrae(dataset_info, regenerate = False):
         elif os.path.exists(im_discs) and not os.path.exists(im_levels):
             print(f'Generating vertebral levels for subject {subject} here: {ofolder}')
             sct_label_vertebrae.main(['-i', im, '-s', im_seg, '-c', dataset_info['contrast'], '-discfile', im_discs,'-ofolder', ofolder, '-qc', ofolder_qc])
-        else: print(f'Spinal cord label for subject {subject} already exists!\n')
+        else:
+            print(f'Spinal cord label for subject {subject} already exists!\n')
+            qc_complete = True
 
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    qc_complete = False
     print('Label quality control found here: ' + ofolder_qc)
     while not qc_complete: 
         user_input = input('Did you quality control the data? [Y]es/[N]o: ')
