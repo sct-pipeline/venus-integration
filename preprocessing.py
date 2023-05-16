@@ -87,7 +87,7 @@ def segment_sc(dataset_info, regenerate = False):
             qc_complete = True
     
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    print('Label quality control found here: ' + ofolder_qc)
+    print('Label quality control found here: ' + ofolder_qc + '\n')
     while not qc_complete: 
         user_input = input('Did you quality control the data? [Y]es/[N]o: ')
         if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
@@ -98,6 +98,7 @@ def label_vertebrae(dataset_info, regenerate = False):
     If the intervertebral discs were manually corrected, make sure that there only exists an intervertebral disc label file
         (and delete the vertebral level file), such that the pipeline will regenerate the intervertebral level label file according
         to the corrected segmentations.
+        ###### Note: we may not even need the intervertebral disc labels
     This function also makes sure the user has performed their quality control before moving on to the next step.
     :param dataset_info: configuration file loaded into dictionary by read_dataset function.
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
@@ -133,7 +134,7 @@ def label_vertebrae(dataset_info, regenerate = False):
             qc_complete = True
 
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    print('Label quality control found here: ' + ofolder_qc)
+    print('Label quality control found here: ' + ofolder_qc + '\n')
     while not qc_complete: 
         user_input = input('Did you quality control the data? [Y]es/[N]o: ')
         if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
