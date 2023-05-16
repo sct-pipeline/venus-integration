@@ -58,6 +58,8 @@ def segment_sc(df_info, regenerate = False):
     This function labels the spinal cord in your image using sct_deep_seg and outputs it in BIDS format
     """
 
+    qc_complete = False
+
     for subject in df_info['subjects'].split(', '):
 
         # output directories
@@ -76,6 +78,10 @@ def segment_sc(df_info, regenerate = False):
         if regenerate or not os.path.exists(im_seg): 
             print(f'Generating spinal cord label for subject {subject} here: {im_seg}')
             sct_deepseg_sc.main(['-i', im, '-c', df_info['contrast'], '-o', im_seg, '-qc', ofolder_qc])
+            print('Segmentation quality control found here: ' + ofolder_qc)
+            while not qc_complete: 
+                user_input = input('Did you quality control the data? [Y]es/[N]o: ')
+                if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
         else: print(f'Spinal cord label for subject {subject} already exists!\n')
 
 # def label_vertebrae(subject, contrast, df_info, regenerate = False):
