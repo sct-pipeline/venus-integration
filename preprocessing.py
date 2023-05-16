@@ -1,8 +1,9 @@
 
 import json
 import os
+from spinalcordtoolbox.scripts import sct_deepseg_sc
 
-def read_dataset(fname_json='configuration.json', path_config_file='.'):
+def read_dataset(fname_json = 'configuration.json', path_config_file = '.'):
     """
     This function (borrowed from https://github.com/neuropoly/template/preprocessing.py) reads a json file that describes the dataset,
      including the list of subjects as well as
@@ -12,7 +13,7 @@ def read_dataset(fname_json='configuration.json', path_config_file='.'):
     :return: a dictionary with all the fields contained in the json file.
     """
 
-    if not os.path.isfile(path_config_file + '/'+ fname_json):
+    if not os.path.isfile(path_config_file + '/' + fname_json):
         raise ValueError('File ' + fname_json + ' doesn\'t seem to exist. Please check your data.')
 
     with open(fname_json) as data_file:
@@ -52,33 +53,32 @@ def read_dataset(fname_json='configuration.json', path_config_file='.'):
 
     return dataset_info
 
-# def seg_sc(subject, contrast, df_info, regenerate=False):
-#     """
-#     This function labels the spinal cord in your image using sct_deep_seg and outputs it in BIDS format
-#     If you already have a spinal cord segmentation and its nomenclature is different, you can include the information in configuration.json
-#         under 'method_seg_sc' and 'suffix_seg_sc')
-#     """
-#     # directory names
-#     method_seg_sc='sct_deepseg_sc' if 'method_seg_sc' not in df_info else df_info['method_seg_sc']
-#     ofolder_seg_sc=df_info['path_data']+'/derivatives/'+method_seg_sc+'/'+subject+'/'+df_info['data_type']
-#     qc_seg_sc=df_info['path_data']+'/derivatives/'+method_seg_sc+'/qc' 
+def segment_sc(df_info, regenerate = False):
+    """
+    This function labels the spinal cord in your image using sct_deep_seg and outputs it in BIDS format
+    """
 
-#     # file names
-#     suffix_seg_sc='_seg' if 'suffix_seg_sc' not in df_info else df_info['suffix_seg_sc']
-#     im=df_info['path_data']+'/'+subject+'/'+df_info['data_type']+'/'+subject+df_info['suffix_image']+'.nii.gz'
-#     im_seg=ofolder_seg_sc+'/'+subject+suffix_seg_sc+'.nii.gz'
+    for subject in df_info['subjects'].split(', '):
 
-#     # make directories if they do not exist
-#     if not os.path.exists(ofolder_seg_sc): os.makedirs(ofolder_seg_sc)
-#     if not os.path.exists(qc_seg_sc): os.makedirs(qc_seg_sc)
+        # output directories
+        ofolder = df_info['path_data'] + '/derivatives/sct_deepseg_sc/' + subject + '/' + df_info['data_type']
+        ofolder_qc = df_info['path_data'] + '/derivatives/sct_deepseg_sc/qc/'
 
-#     # label spinal cord if it does not exists or if you want to regenerate it:
-#     if regenerate or not os.path.exists(im_seg): 
-#         print(f'Generating spinal cord label for subject {subject}; will be saved here: {im_seg}')
-#         sct_deepseg_sc.main(['-i',im,'-c',contrast,'-o',im_seg,'-qc',qc_seg_sc])
-#     else: print(f'Spinal cord label for subject {subject} already exists here: {im_seg}!\n')
+        # make directories if they do not exist
+        if not os.path.exists(ofolder): os.makedirs(ofolder)
+        if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
 
-# def label_vertebrae(subject, contrast, df_info, regenerate=False):
+        # file names
+        im = df_info['path_data'] + '/' + subject + '/' + df_info['data_type'] + '/' + subject + df_info['suffix_image'] + '.nii.gz'
+        im_seg = ofolder + '/' + subject + df_info['suffix_image'] + '_seg.nii.gz'
+        
+        # label spinal cord if it does not exists or if you want to regenerate it:
+        if regenerate or not os.path.exists(im_seg): 
+            print(f'Generating spinal cord label for subject {subject} here: {im_seg}')
+            sct_deepseg_sc.main(['-i', im, '-c', df_info['contrast'], '-o', im_seg, '-qc', ofolder_qc])
+        else: print(f'Spinal cord label for subject {subject} already exists!\n')
+
+# def label_vertebrae(subject, contrast, df_info, regenerate = False):
 #     """
 #     This function labels the spinal cord vertebral levels and intervertebral discs in BIDS format
 #     If you already have these labels and their nomenclature is different, you can include the information in configuration.json
@@ -86,22 +86,22 @@ def read_dataset(fname_json='configuration.json', path_config_file='.'):
 #     """
     
 #     # directory names
-#     method_seg_sc='sct_deepseg_sc' if 'method_seg_sc' not in df_info else df_info['method_seg_sc']
-#     method_label_vertebrae='sct_label_vertebrae' if 'method_label_vertebrae' not in df_info else df_info['method_label_vertebrae']
+#     method_seg_sc = 'sct_deepseg_sc' if 'method_seg_sc' not in df_info else df_info['method_seg_sc']
+#     method_label_vertebrae = 'sct_label_vertebrae' if 'method_label_vertebrae' not in df_info else df_info['method_label_vertebrae']
 #     method_label_discs = method_label_vertebrae if 'method_label_discs' not in df_info else df_info['method_label_discs']
-#     ofolder_seg_sc=df_info['path_data']+'/derivatives/'+method_seg_sc+'/'+subject+'/'+df_info['data_type']
-#     ofolder_label_vertebrae=df_info['path_data']+'/derivatives/'+method_label_vertebrae+'/'+subject+'/'+df_info['data_type']
-#     ofolder_label_discs=df_info['path_data']+'/derivatives/'+method_label_discs+'/'+subject+'/'+df_info['data_type']
-#     qc_label_vertebrae = df_info['path_data']+'/derivatives/'+method_label_vertebrae+'/qc' 
+#     ofolder_seg_sc = df_info['path_data'] + '/derivatives/' + method_seg_sc + '/' + subject + '/' + df_info['data_type']
+#     ofolder_label_vertebrae = df_info['path_data'] + '/derivatives/' + method_label_vertebrae + '/' + subject + '/' + df_info['data_type']
+#     ofolder_label_discs = df_info['path_data'] + '/derivatives/' + method_label_discs + '/' + subject + '/' + df_info['data_type']
+#     qc_label_vertebrae = df_info['path_data'] + '/derivatives/' + method_label_vertebrae + '/qc' 
 
 #     # file names
-#     suffix_seg_sc='_seg' if 'suffix_seg_sc' not in df_info else df_info['suffix_seg_sc']
-#     suffix_label_vertebrae='_seg_labeled' if 'suffix_label_vertebrae' not in df_info else df_info['suffix_label_vertebrae']
-#     suffix_label_discs='_seg_labeled_discs' if 'suffix_label_discs' not in df_info else df_info['suffix_label_discs']
-#     im=df_info['path_data']+'/'+subject+'/'+df_info['data_type']+'/'+subject+df_info['suffix_image']+'.nii.gz'
-#     im_seg=ofolder_seg_sc+'/'+subject+suffix_seg_sc+'.nii.gz'
-#     im_label_vertebrae=ofolder_label_vertebrae+'/'+subject+suffix_label_vertebrae+'.nii.gz'
-#     im_label_discs=ofolder_label_discs+'/'+subject+suffix_label_discs+'.nii.gz'
+#     suffix_seg_sc = '_seg' if 'suffix_seg_sc' not in df_info else df_info['suffix_seg_sc']
+#     suffix_label_vertebrae = '_seg_labeled' if 'suffix_label_vertebrae' not in df_info else df_info['suffix_label_vertebrae']
+#     suffix_label_discs = '_seg_labeled_discs' if 'suffix_label_discs' not in df_info else df_info['suffix_label_discs']
+#     im = df_info['path_data'] + '/' + subject + '/' + df_info['data_type'] + '/' + subject + df_info['suffix_image'] + '.nii.gz'
+#     im_seg = ofolder_seg_sc + '/' + subject + suffix_seg_sc + '.nii.gz'
+#     im_label_vertebrae = ofolder_label_vertebrae + '/' + subject + suffix_label_vertebrae + '.nii.gz'
+#     im_label_discs = ofolder_label_discs + '/' + subject + suffix_label_discs + '.nii.gz'
 
 
 #     # make directories if they do not exist
