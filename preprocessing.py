@@ -1,6 +1,7 @@
 
 import json
 import os
+from tqdm import tqdm
 from spinalcordtoolbox.scripts import sct_deepseg_sc
 from spinalcordtoolbox.scripts import sct_label_vertebrae
 
@@ -65,6 +66,8 @@ def segment_sc(dataset_info, regenerate = False):
     qc_complete = False
     ofolder_qc = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/qc/'
 
+    tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
+    
     for subject in dataset_info['subjects'].split(', '):
 
         # output directories
@@ -85,6 +88,8 @@ def segment_sc(dataset_info, regenerate = False):
         else:
             print(f'Spinal cord label for subject {subject} already exists!\n')
             qc_complete = True
+        tqdm_bar.update(1)
+    tqdm_bar.close()
     
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
     print('Label quality control found here: ' + ofolder_qc + '\n')
@@ -94,11 +99,8 @@ def segment_sc(dataset_info, regenerate = False):
 
 def label_vertebrae(dataset_info, regenerate = False):
     """
-    This function labels the vertebral levels and intervertebral discs along the spinal cord and outputs the labels in BIDS format.
-    If the intervertebral discs were manually corrected, make sure that there only exists an intervertebral disc label file
-        (and delete the vertebral level file), such that the pipeline will regenerate the intervertebral level label file according
-        to the corrected segmentations.
-        ###### Note: we may not even need the intervertebral disc labels
+    This function labels the intervertebral discs along the spinal cord and outputs the labels in BIDS format.
+    If the intervertebral discs were manually corrected, make sure that they follow the correct naming convention.
     This function also makes sure the user has performed their quality control before moving on to the next step.
     :param dataset_info: configuration file loaded into dictionary by read_dataset function.
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
@@ -106,6 +108,50 @@ def label_vertebrae(dataset_info, regenerate = False):
 
     qc_complete = False
     ofolder_qc = dataset_info['path_data'] + '/derivatives/sct_label_vertebrae/qc/'
+
+    tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
+    
+    for subject in dataset_info['subjects'].split(', '):
+
+        # output directory
+        ofolder = dataset_info['path_data'] + '/derivatives/sct_label_vertebrae/' + subject + '/' + dataset_info['data_type']
+        
+        # make directories if they do not exist
+        if not os.path.exists(ofolder): os.makedirs(ofolder)
+        if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
+
+        # file names
+        fname_image = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
+        fname_image_seg = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
+        fname_image_discs = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg_labeled_discs.nii.gz'
+
+        # label spinal cord if it does not exists or if you want to regenerate it:
+        if regenerate or not os.path.exists(fname_image_discs):
+            print(f'Generating vertebral levels and intervertebral disc labels for subject {subject} here: {ofolder}')
+            sct_label_vertebrae.main(['-i', fname_image, '-s', fname_image_seg, '-c', dataset_info['contrast'], '-ofolder', ofolder, '-qc', ofolder_qc])
+        else:
+            print(f'Spinal cord label for subject {subject} already exists!\n')
+            qc_complete = True
+        tqdm_bar.update(1)
+    tqdm_bar.close()
+
+    # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
+    print('Label quality control found here: ' + ofolder_qc + '\n')
+    while not qc_complete: 
+        user_input = input('Did you quality control the data? [Y]es/[N]o: ')
+        if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
+
+def label_centerline(dataset_info, regenerate = False):
+    """
+    This function labels the spinal cord centerline and outputs the centerline according to BIDS format..
+    :param dataset_info: configuration file loaded into dictionary by read_dataset function.
+    :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
+    """
+
+    qc_complete = False
+    ofolder_qc = dataset_info['path_data'] + '/derivatives/sct_label_vertebrae/qc/'
+
+    tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
 
     for subject in dataset_info['subjects'].split(', '):
 
@@ -128,6 +174,8 @@ def label_vertebrae(dataset_info, regenerate = False):
         else:
             print(f'Spinal cord label for subject {subject} already exists!\n')
             qc_complete = True
+        tqdm_bar.update(1)
+    tqdm_bar.close()
 
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
     print('Label quality control found here: ' + ofolder_qc + '\n')
