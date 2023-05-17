@@ -68,8 +68,6 @@ def get_orthog_plane(im, ctl, arr_ctl_der,iz,min_z_index,orientation):
  
     return(pointNormalPlane(origin = list(origin_anat_orient_dest), normal = norm,orientation = orientation,space = 'anatomical'))
 
-
-#def slice_select(image, image_seg, image_boundary, image_contrast, N_slices, slicer_markup = True):
 def slice_select(dataset_info, upper_bound_disc_label, lower_bound_disc_label, N_slices, slicer_markup = True):
     """
     Function to compute the z-indices (in SCT image space) of N slices that are equidistant along the centerline
@@ -82,9 +80,7 @@ def slice_select(dataset_info, upper_bound_disc_label, lower_bound_disc_label, N
     :param N_slices: int
     :return: generic point-normal plane .json file and point-normal plane markup .json file that can be read by 3D slicer
     """
-
     
-
     native_orientation = Image(f'input/{image}').orientation
     # Load anatomical files (e.g. NIFTI) into Image object and change orientation to RPI (what the SCT tools use)
     im = Image(f'input/{image}').change_orientation('RPI')
