@@ -199,3 +199,4 @@ def label_centerline(dataset_info, param_centerline, regenerate = False):
         list_centerline.append(centerline)
         tqdm_bar.update(1)
     tqdm_bar.close()
+    return(list_centerline)
