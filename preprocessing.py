@@ -5,6 +5,11 @@ from tqdm import tqdm
 from spinalcordtoolbox.scripts import sct_deepseg_sc
 from spinalcordtoolbox.scripts import sct_label_vertebrae
 
+from spinalcordtoolbox.types import Centerline
+from spinalcordtoolbox.centerline.core import ParamCenterline
+from spinalcordtoolbox.centerline.core import get_centerline
+from spinalcordtoolbox.image import Image
+
 def read_dataset(fname_json = 'configuration.json', path_config_file = '.'):
     """
     This function (borrowed from https://github.com/neuropoly/template/preprocessing.py) reads a json file that describes the dataset,
@@ -63,19 +68,18 @@ def segment_sc(dataset_info, regenerate = False):
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
     """
 
+    # quality control (QC) output directory
+    ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_segment_sc/'
+    if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
     qc_complete = False
-    ofolder_qc = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/qc/'
 
     tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
     
     for subject in dataset_info['subjects'].split(', '):
 
-        # output directories
-        ofolder = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/' + subject + '/' + dataset_info['data_type']
-
-        # make directories if they do not exist
+        # output directory
+        ofolder = dataset_info['path_data'] + '/derivatives/labels/' + subject + '/' + dataset_info['data_type']
         if not os.path.exists(ofolder): os.makedirs(ofolder)
-        if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
 
         # file names
         fname_image = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
@@ -106,23 +110,22 @@ def label_vertebrae(dataset_info, regenerate = False):
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
     """
 
+    # quality control (QC) output directory
+    ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_;abel_vertebrae/'
+    if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
     qc_complete = False
-    ofolder_qc = dataset_info['path_data'] + '/derivatives/sct_label_vertebrae/qc/'
 
     tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
     
     for subject in dataset_info['subjects'].split(', '):
 
         # output directory
-        ofolder = dataset_info['path_data'] + '/derivatives/sct_label_vertebrae/' + subject + '/' + dataset_info['data_type']
-        
-        # make directories if they do not exist
+        ofolder = dataset_info['path_data'] + '/derivatives/labels/' + subject + '/' + dataset_info['data_type']
         if not os.path.exists(ofolder): os.makedirs(ofolder)
-        if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
 
         # file names
         fname_image = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
-        fname_image_seg = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
+        fname_image_seg = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
         fname_image_discs = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg_labeled_discs.nii.gz'
 
         # label spinal cord if it does not exists or if you want to regenerate it:
@@ -141,44 +144,59 @@ def label_vertebrae(dataset_info, regenerate = False):
         user_input = input('Did you quality control the data? [Y]es/[N]o: ')
         if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
 
-def label_centerline(dataset_info, regenerate = False):
+def label_centerline(dataset_info, param_centerline, regenerate = False):
     """
     This function labels the spinal cord centerline and outputs the centerline according to BIDS format..
     :param dataset_info: configuration file loaded into dictionary by read_dataset function.
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
     """
 
-    qc_complete = False
-    ofolder_qc = dataset_info['path_data'] + '/derivatives/sct_label_vertebrae/qc/'
+    # quality control (QC) output directory
+    ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_label_centerline/'
+    if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
 
     tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
 
     for subject in dataset_info['subjects'].split(', '):
 
         # output directory
-        ofolder = dataset_info['path_data'] + '/derivatives/sct_label_vertebrae/' + subject + '/' + dataset_info['data_type']
-        
-        # make directories if they do not exist
+        ofolder = dataset_info['path_data'] + '/derivatives/labels/' + subject + '/' + dataset_info['data_type']
         if not os.path.exists(ofolder): os.makedirs(ofolder)
-        if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
 
         # file names
         fname_image = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
-        fname_image_seg = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
+        fname_image_seg = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
         fname_image_discs = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg_labeled_discs.nii.gz'
+        fname_centerline = ofolder + '/' + subject + dataset_info['suffix_image'] + '_centerline'
 
-        # label spinal cord if it does not exists or if you want to regenerate it:
-        if regenerate or not os.path.exists(fname_image_discs):
-            print(f'Generating vertebral levels and intervertebral disc labels for subject {subject} here: {ofolder}')
-            sct_label_vertebrae.main(['-i', fname_image, '-s', fname_image_seg, '-c', dataset_info['contrast'], '-ofolder', ofolder, '-qc', ofolder_qc])
+        # if centerline exists, we load it, if not, we compute it
+        if os.path.isfile(fname_centerline + '.npz') and not regenerate:
+            print("Centerline for " + subject + " exists and will not be recomputed!")
         else:
-            print(f'Spinal cord label for subject {subject} already exists!\n')
-            qc_complete = True
+            if os.path.isfile(fname_image_seg):
+                print(subject + ' SC segmentation exists. Extracting centerline from ' + fname_image_seg)
+                im_seg = Image(fname_image_seg).change_orientation('RPI')
+            else:
+                print(subject + ' SC segmentation does not exist. Extracting centerline from ' + fname_image)
+                im_seg = Image(fname_image).change_orientation('RPI')
+
+            # extracting intervertebral discs
+            im_discs = Image(fname_image_discs).change_orientation('RPI')
+            coord = im_discs.getNonZeroCoordinates(sorting = 'z', reverse_coord = True)
+            coord_physical = []
+            for c in coord:
+                c_p = list(im_discs.transfo_pix2phys([[c.x, c.y, c.z]])[0])
+                c_p.append(c.value)
+                coord_physical.append(c_p)
+
+            # extracting centerline
+            im_ctl, arr_ctl, arr_ctl_der, _ = get_centerline(im_seg, param = param_centerline, space = 'phys')
+
+            # save centerline as .nii.gz file
+            im_ctl.save(fname_centerline + '.nii.gz', dtype = 'float32')
+            centerline = Centerline(points_x = arr_ctl[0], points_y = arr_ctl[1], points_z = arr_ctl[2], deriv_x = arr_ctl_der[0], deriv_y = arr_ctl_der[1], deriv_z = arr_ctl_der[2])
+            centerline.compute_vertebral_distribution(coord_physical)
+            # save centerline .npz file
+            centerline.save_centerline(fname_output = fname_centerline)
         tqdm_bar.update(1)
     tqdm_bar.close()
-
-    # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    print('Label quality control found here: ' + ofolder_qc + '\n')
-    while not qc_complete: 
-        user_input = input('Did you quality control the data? [Y]es/[N]o: ')
-        if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
