@@ -1,6 +1,6 @@
 
 from preprocessing import *
-from slice_select import *
+#from slice_select import *
 import sys
 from spinalcordtoolbox.centerline.core import ParamCenterline
 
@@ -20,7 +20,7 @@ elif not sys.argv[3].isdigit():
 # load json config file
 dataset_info = read_dataset(sys.argv[1])
 
-# segment spinal cord (SC)
+# segment spinal cord (sc)
 segment_sc(dataset_info)
 
 # label discs
@@ -30,5 +30,5 @@ label_vertebrae(dataset_info)
 param_centerline = ParamCenterline(algo_fitting = 'linear', contrast = dataset_info['contrast'], smooth = 50) 
 label_centerline(dataset_info, param_centerline, regenerate = False)
 
-upper_bound_disc_label = int(sys.argv[2])
-lower_bound_disc_label = int(sys.argv[3])
+# upper_bound_disc_label = int(sys.argv[2])
+# lower_bound_disc_label = int(sys.argv[3])

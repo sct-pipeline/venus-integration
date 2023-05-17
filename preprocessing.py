@@ -69,7 +69,7 @@ def segment_sc(dataset_info, regenerate = False):
     """
 
     # quality control (QC) output directory
-    ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_segment_sc/'
+    ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_segment_sc'
     if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
     qc_complete = False
 
@@ -96,7 +96,7 @@ def segment_sc(dataset_info, regenerate = False):
     tqdm_bar.close()
     
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    print('Label quality control found here: ' + ofolder_qc + '\n')
+    print('Label quality control found here: ' + ofolder_qc + '/index.html\n')
     while not qc_complete: 
         user_input = input('Did you quality control the data? [Y]es/[N]o: ')
         if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
@@ -111,7 +111,7 @@ def label_vertebrae(dataset_info, regenerate = False):
     """
 
     # quality control (QC) output directory
-    ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_;abel_vertebrae/'
+    ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_label_vertebrae'
     if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
     qc_complete = False
 
@@ -139,7 +139,7 @@ def label_vertebrae(dataset_info, regenerate = False):
     tqdm_bar.close()
 
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    print('Label quality control found here: ' + ofolder_qc + '\n')
+    print('Label quality control found here: ' + ofolder_qc + '/index.html\n')
     while not qc_complete: 
         user_input = input('Did you quality control the data? [Y]es/[N]o: ')
         if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
@@ -150,10 +150,6 @@ def label_centerline(dataset_info, param_centerline, regenerate = False):
     :param dataset_info: configuration file loaded into dictionary by read_dataset function.
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
     """
-
-    # quality control (QC) output directory
-    ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_label_centerline/'
-    if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
 
     tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
 
@@ -174,10 +170,10 @@ def label_centerline(dataset_info, param_centerline, regenerate = False):
             print("Centerline for " + subject + " exists and will not be recomputed!")
         else:
             if os.path.isfile(fname_image_seg):
-                print(subject + ' SC segmentation exists. Extracting centerline from ' + fname_image_seg)
+                print(subject + ' spinal cord segmentation exists. Extracting centerline from ' + fname_image_seg)
                 im_seg = Image(fname_image_seg).change_orientation('RPI')
             else:
-                print(subject + ' SC segmentation does not exist. Extracting centerline from ' + fname_image)
+                print(subject + ' spinal cord segmentation does not exist. Extracting centerline from ' + fname_image)
                 im_seg = Image(fname_image).change_orientation('RPI')
 
             # extracting intervertebral discs
@@ -196,6 +192,7 @@ def label_centerline(dataset_info, param_centerline, regenerate = False):
             im_ctl.save(fname_centerline + '.nii.gz', dtype = 'float32')
             centerline = Centerline(points_x = arr_ctl[0], points_y = arr_ctl[1], points_z = arr_ctl[2], deriv_x = arr_ctl_der[0], deriv_y = arr_ctl_der[1], deriv_z = arr_ctl_der[2])
             centerline.compute_vertebral_distribution(coord_physical)
+            
             # save centerline .npz file
             centerline.save_centerline(fname_output = fname_centerline)
         tqdm_bar.update(1)
