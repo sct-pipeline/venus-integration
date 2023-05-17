@@ -75,13 +75,13 @@ def segment_sc(dataset_info, regenerate = False):
         if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
 
         # file names
-        im = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
-        im_seg = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
+        im_path = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
+        im_seg_path = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
         
         # label spinal cord if it does not exists or if you want to regenerate it:
-        if regenerate or not os.path.exists(im_seg): 
+        if regenerate or not os.path.exists(im_seg_path): 
             print(f'Generating spinal cord mask for subject {subject} here: {ofolder}')
-            sct_deepseg_sc.main(['-i', im, '-c', dataset_info['contrast'], '-o', im_seg, '-qc', ofolder_qc])
+            sct_deepseg_sc.main(['-i', im_path, '-c', dataset_info['contrast'], '-o', im_seg_path, '-qc', ofolder_qc])
         else:
             print(f'Spinal cord label for subject {subject} already exists!\n')
             qc_complete = True
@@ -117,18 +117,18 @@ def label_vertebrae(dataset_info, regenerate = False):
         if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
 
         # file names
-        im = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
-        im_seg = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
-        im_discs = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg_labeled_discs.nii.gz'
-        im_levels = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg_labeled.nii.gz'
+        im_path = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
+        im_seg_path = dataset_info['path_data'] + '/derivatives/sct_deepseg_sc/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '_seg.nii.gz'
+        im_discs_path = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg_labeled_discs.nii.gz'
+        im_levels_path = ofolder + '/' + subject + dataset_info['suffix_image'] + '_seg_labeled.nii.gz'
 
         # label spinal cord if it does not exists or if you want to regenerate it:
-        if regenerate or not os.path.exists(im_discs):
+        if regenerate or not os.path.exists(im_discs_path):
             print(f'Generating vertebral levels and intervertebral disc labels for subject {subject} here: {ofolder}')
-            sct_label_vertebrae.main(['-i', im, '-s', im_seg, '-c', dataset_info['contrast'], '-ofolder', ofolder, '-qc', ofolder_qc])
-        elif os.path.exists(im_discs) and not os.path.exists(im_levels):
+            sct_label_vertebrae.main(['-i', im_path, '-s', im_seg_path, '-c', dataset_info['contrast'], '-ofolder', ofolder, '-qc', ofolder_qc])
+        elif os.path.exists(im_discs_path) and not os.path.exists(im_levels_path):
             print(f'Generating vertebral levels for subject {subject} here: {ofolder}')
-            sct_label_vertebrae.main(['-i', im, '-s', im_seg, '-c', dataset_info['contrast'], '-discfile', im_discs,'-ofolder', ofolder, '-qc', ofolder_qc])
+            sct_label_vertebrae.main(['-i', im_path, '-s', im_seg_path, '-c', dataset_info['contrast'], '-discfile', im_discs_path,'-ofolder', ofolder, '-qc', ofolder_qc])
         else:
             print(f'Spinal cord label for subject {subject} already exists!\n')
             qc_complete = True
