@@ -149,6 +149,8 @@ def label_centerline(dataset_info, param_centerline, regenerate = False):
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
     """
 
+    list_centerline = []
+
     tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
 
     for subject in dataset_info['subjects'].split(', '):
@@ -166,6 +168,7 @@ def label_centerline(dataset_info, param_centerline, regenerate = False):
         # if centerline exists, we load it, if not, we compute it
         if os.path.isfile(fname_centerline + '.npz') and not regenerate:
             print("Centerline for " + subject + " exists and will not be recomputed!")
+            centerline = Centerline(fname = fname_centerline + '.npz')
         else:
             if os.path.isfile(fname_image_seg):
                 print(subject + ' spinal cord segmentation exists. Extracting centerline from ' + fname_image_seg)
@@ -193,5 +196,6 @@ def label_centerline(dataset_info, param_centerline, regenerate = False):
             
             # save centerline .npz file
             centerline.save_centerline(fname_output = fname_centerline)
+        list_centerline.append(centerline)
         tqdm_bar.update(1)
     tqdm_bar.close()
