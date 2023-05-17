@@ -12,10 +12,8 @@ from spinalcordtoolbox.image import Image
 
 def read_dataset(fname_json = 'configuration.json', path_config_file = '.'):
     """
-    This function (borrowed from https://github.com/neuropoly/template/preprocessing.py) reads a json file that describes the dataset,
-     including the list of subjects as well as
-    suffix for filenames (centerline, disks, segmentations, etc.).
-    The function raises an exception if the file is missing or if required fields are missing from the json file.
+    This function reads a json file that describes the dataset and raises an exception if a file is missing 
+        or if required fields are missing from the json file.
     :param fname_json: path + file name to json description file.
     :return: a dictionary with all the fields contained in the json file.
     """
@@ -146,7 +144,7 @@ def label_vertebrae(dataset_info, regenerate = False):
 
 def label_centerline(dataset_info, param_centerline, regenerate = False):
     """
-    This function labels the spinal cord centerline and outputs the centerline according to BIDS format..
+    This function labels the spinal cord centerline and outputs the centerline as .npz and .nii.gz according to BIDS format.
     :param dataset_info: configuration file loaded into dictionary by read_dataset function.
     :param regenerate: by default, the spinal cord segmentation will not be regenerated if it already exists.
     """
