@@ -1,4 +1,5 @@
 import os
+import sys
 
 fname_out =sys.argv[1]
 origin = [float(sys.argv[2]),float(sys.argv[3]),float(sys.argv[4])]
@@ -15,7 +16,7 @@ print(f'new plane normal: {input_Node.GetNormal()}')
 print(f'new plane origin: {input_Node.GetOrigin()}')
 myStorageNode = input_Node.CreateDefaultStorageNode()
 
-filename=f'{os.getcwd()}/output/{fname_out}'
+filename=f'{fname_out}'
 print(f'filename: {filename}')
 myStorageNode.SetFileName(filename)
 myStorageNode.WriteData(input_Node)
