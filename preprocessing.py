@@ -69,7 +69,6 @@ def segment_sc(dataset_info, regenerate = False):
     # quality control (QC) output directory
     ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_segment_sc'
     if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
-    qc_complete = False
 
     tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
     
@@ -89,15 +88,11 @@ def segment_sc(dataset_info, regenerate = False):
             sct_deepseg_sc.main(['-i', fname_image, '-c', dataset_info['contrast'], '-o', fname_image_seg, '-qc', ofolder_qc])
         else:
             print(f'Spinal cord label for subject {subject} already exists!\n')
-            qc_complete = True
         tqdm_bar.update(1)
     tqdm_bar.close()
     
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    print('Label quality control found here: ' + ofolder_qc + '/index.html\n')
-    while not qc_complete: 
-        user_input = input('Did you quality control the data? [Y]es/[N]o: ')
-        if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
+    print('Quality control found here: ' + ofolder_qc + '/index.html\n')
 
 def label_vertebrae(dataset_info, regenerate = False):
     """
@@ -111,7 +106,6 @@ def label_vertebrae(dataset_info, regenerate = False):
     # quality control (QC) output directory
     ofolder_qc = dataset_info['path_data'] + '/derivatives/labels/qc_label_vertebrae'
     if not os.path.exists(ofolder_qc): os.makedirs(ofolder_qc)
-    qc_complete = False
 
     tqdm_bar = tqdm(total = len(dataset_info['subjects'].split(', ')), unit = 'B', unit_scale = True, desc = "Status", ascii = True)
     
@@ -137,10 +131,7 @@ def label_vertebrae(dataset_info, regenerate = False):
     tqdm_bar.close()
 
     # checkpoint: making sure user quality controls the outputs before the pipeline moves on to the next step!
-    print('Label quality control found here: ' + ofolder_qc + '/index.html\n')
-    while not qc_complete: 
-        user_input = input('Did you quality control the data? [Y]es/[N]o: ')
-        if user_input in ['Y', 'yes', 'Yes', 'y']: qc_complete = True
+    print('Quality control found here: ' + ofolder_qc + '/index.html\n')
 
 def label_centerline(dataset_info, param_centerline, regenerate = False):
     """
@@ -189,13 +180,14 @@ def label_centerline(dataset_info, param_centerline, regenerate = False):
             # extracting centerline
             im_ctl, arr_ctl, arr_ctl_der, _ = get_centerline(im_seg, param = param_centerline, space = 'phys')
 
-            # save centerline as .nii.gz file
+            # save centerline as .nii.gz file, in RPI orientation
             im_ctl.save(fname_centerline + '.nii.gz', dtype = 'float32')
             centerline = Centerline(points_x = arr_ctl[0], points_y = arr_ctl[1], points_z = arr_ctl[2], deriv_x = arr_ctl_der[0], deriv_y = arr_ctl_der[1], deriv_z = arr_ctl_der[2])
             centerline.compute_vertebral_distribution(coord_physical)
             
-            # save centerline .npz file
+            # save centerline .npz file, in RPI orientation
             centerline.save_centerline(fname_output = fname_centerline)
+            
         list_centerline.append(centerline)
         tqdm_bar.update(1)
     tqdm_bar.close()
