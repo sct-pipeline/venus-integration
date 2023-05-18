@@ -68,7 +68,7 @@ def get_orthog_plane(im, ctl, arr_ctl_der,iz,min_z_index,orientation):
  
     return(pointNormalPlane(origin = list(origin_anat_orient_dest), normal = norm,orientation = orientation,space = 'anatomical'))
 
-def slice_select(dataset_info, list_centerline, upper_bound_disc_label, lower_bound_disc_label, n_slices, slicer_markup = True):
+def slice_select(dataset_info, list_centerline, upper_disc_number, lower_disc_number, n_slices, slicer_markup = True):
     """
     Function to compute the z-indices (in SCT image space) of N slices that are equidistant along the centerline
     and output a point-normal plane that is orthogonal to the centerline at each slice of interest
@@ -88,10 +88,140 @@ def slice_select(dataset_info, list_centerline, upper_bound_disc_label, lower_bo
         if not os.path.exists(ofolder): os.makedirs(ofolder)
 
         current_centerline = list_centerline[i]
-        upper_label = current_centerline.regions_labels[upper_bound_disc_label]
-        lower_label = current_centerline.regions_labels[lower_bound_disc_label]
-        index_upper_bound_disc_label = current_centerline.index_disc[upper_label]
-        index_lower_bound_disc_label = current_centerline.index_disc[lower_label]
+
+        ######### TESTING various properties #########
+        # for i in range(10):
+        #     disc_label = current_centerline.regions_labels[i+1]
+        #     disc_index = current_centerline.index_disc[disc_label]
+        #     print(f'disc_label: {disc_label}')
+        #     print(f'disc_index: {disc_index}')
+        #     print(f'current_centerline.points[disc_index]: {current_centerline.points[disc_index]}')
+        #     print(f'current_centerline.dist_points[disc_index]: {current_centerline.dist_points[disc_index]}')
+        ##############################################
+
+        upper_disc_label = current_centerline.regions_labels[upper_disc_number]
+        lower_disc_label = current_centerline.regions_labels[lower_disc_number]
+        upper_disc_index = current_centerline.index_disc[upper_disc_label]
+        lower_disc_index = current_centerline.index_disc[lower_disc_label]
+
+        print(f'\nupper disc: {upper_disc_label}, index {upper_disc_index}')
+        print(f'current_centerline.incremental_length[upper_disc_index]: {current_centerline.incremental_length[upper_disc_index]}')
+        print(f'\nlower disc: {lower_disc_label}, index {lower_disc_index}')
+        print(f'current_centerline.incremental_length[lower_disc_index]: {current_centerline.incremental_length[lower_disc_index]}\n')
+        ### IMPORTANT FOR LENGTH: incremental_length (not progressive), and always UPPER MINUS LOWER!
+
+        slice_indices = []
+        interslice_dist = []
+        dist_upper_list = []
+        dist_lower_list = []
+        dist_btw_bounds = current_centerline.incremental_length[upper_disc_index] - current_centerline.incremental_length[lower_disc_index]
+        curr_index = upper_disc_index
+        slice_indices.append(curr_index)
+
+        for i in range(n_slices - 1):
+
+            dist_btw_slices = dist_btw_bounds / (n_slices - 1 - i)
+
+            print(f'i: {i}')
+            print(f'curr_index: {curr_index}')
+            print(f'dist_between_bounds: {dist_btw_bounds}')
+            print(f'dist_between_slices: {dist_btw_slices}\n')
+            
+            dist_upper = 0
+            while (dist_upper < dist_btw_slices) and (curr_index >= 0):
+                dist_upper += current_centerline.progressive_length[curr_index]
+                curr_index -= 1
+            dist_lower = dist_upper - current_centerline.progressive_length[curr_index+1]
+            
+            dist_upper_list.append(dist_upper) ######
+            dist_lower_list.append(dist_lower) ######
+            
+            if (abs(dist_upper - dist_btw_slices) < abs(dist_lower - dist_btw_slices)):
+                slice_indices.append(curr_index)
+                interslice_dist.append(abs(dist_upper))
+            else:
+                slice_indices.append(curr_index - 1)
+                curr_index = curr_index - 1
+                interslice_dist.append(abs(dist_lower))
+       
+            dist_btw_bounds =  dist_btw_bounds - dist_btw_slices
+
+        print(f'\nslice_indices: {slice_indices}\n')
+        print(f'\ninterslice_dist: {interslice_dist}\n')
+        print(f'\ndist_upper_list: {dist_upper_list}\n')
+        print(f'\ndist_lower_list: {dist_lower_list}\n')
+
+    # dist_between_bounds = dist_between_bounds - dist_between_slices
+    # slices.append(dist_between_slices)
+
+    # dist_between_slices = float(ctl.length/(N_slices)-1)
+    # slices_z = []
+    # interslice_dist = []
+    # slices_z.append(0)
+    # slice_i = 1
+    # i = 0
+    # f = open('output/info.txt', 'w')
+    # f.write(f"Average distance between slices: {round(dist_between_slices,2)}\n")  # Sanity check!
+    # while slice_i < N_slices:
+    #     dist_upper = 0
+    #     dist_lower = 0
+    #     while (dist_upper < dist_between_slices) and (i < len(ctl.progressive_length)):
+    #         dist_upper += ctl.progressive_length[i]
+    #         i += 1
+    #     dist_lower = dist_upper - ctl.progressive_length[i-1]
+    #     f.write(f"Current interslice distance can range from {round(dist_lower,2)} (index {i-1}) to {round(dist_upper,2)} (index {i})\n") # Sanity check!
+    #     if (abs(dist_upper-dist_between_slices) < abs(dist_lower-dist_between_slices)):
+    #         slices_z.append(i)
+    #         interslice_dist.append(dist_upper)
+    #         f.write(f"Current centerline incremental length: {ctl.incremental_length[i]}\n")
+    #     else:
+    #         slices_z.append(i-1)                
+    #         interslice_dist.append(dist_lower)
+    #         f.write(f"Current centerline incremental length: {ctl.incremental_length[i-1]}\n")
+    #     slice_i += 1
+    # slices_z = np.array(slices_z)
+  
+
+        # float(current_centerline.length/(N_slices)-1)
+
+        # print(f'index 0: {current_centerline.dist_points[0]}')
+        # print(f'index 50: {current_centerline.dist_points[50]}')
+        # print(f'index {index_lower_bound_disc_label}: {current_centerline.dist_points[index_lower_bound_disc_label]}')
+        # print(f'index 100: {current_centerline.dist_points[100]}')
+        # print(f'index 150: {current_centerline.dist_points[150]}')
+        # print(f'index {index_upper_bound_disc_label}: {current_centerline.dist_points[index_upper_bound_disc_label]}')
+        
+        #print(f'index 0: {current_centerline.compute_coordinate_system(0)}\n')
+        #print(f'index {index_upper_bound_disc_label}: {current_centerline.compute_coordinate_system(index_upper_bound_disc_label)}\n')
+        #print(f'index {index_lower_bound_disc_label}: {current_centerline.compute_coordinate_system(index_lower_bound_disc_label)}\n')
+        # find N slices that are approximately equidistant along the centerline (NOT along S-I axis!)
+        #distance_between_slices = float(current_centerline.length/(N_slices)-1)
+        # slices_z = []
+        # interslice_dist = []
+        # slices_z.append(0)
+        # slice_i = 1
+        # i = 0
+        # f = open('output/info.txt', 'w')
+        # f.write(f"Average distance between slices: {round(dist_between_slices,2)}\n")  # Sanity check!
+        # while slice_i < N_slices:
+        #     dist_upper = 0
+        #     dist_lower = 0
+        #     while (dist_upper < dist_between_slices) and (i < len(ctl.progressive_length)):
+        #         dist_upper += ctl.progressive_length[i]
+        #         i += 1
+        #     dist_lower = dist_upper - ctl.progressive_length[i-1]
+        #     f.write(f"Current interslice distance can range from {round(dist_lower,2)} (index {i-1}) to {round(dist_upper,2)} (index {i})\n") # Sanity check!
+        #     if (abs(dist_upper-dist_between_slices) < abs(dist_lower-dist_between_slices)):
+        #         slices_z.append(i)
+        #         interslice_dist.append(dist_upper)
+        #         f.write(f"Current centerline incremental length: {ctl.incremental_length[i]}\n")
+        #     else:
+        #         slices_z.append(i-1)                
+        #         interslice_dist.append(dist_lower)
+        #         f.write(f"Current centerline incremental length: {ctl.incremental_length[i-1]}\n")
+        #     slice_i += 1
+        # slices_z = np.array(slices_z)
+
 
         #print(current_centerline.labels_regions[0])
         #index_upper_bound_disc_label = current_centerline.list_labels.index(current_centerline.labels_regions[upper_bound_disc_label])
