@@ -34,7 +34,8 @@ label_vertebrae(dataset_info)
 param_centerline = ParamCenterline(algo_fitting = 'linear', contrast = dataset_info['contrast'], smooth = 50) 
 list_centerline = label_centerline(dataset_info, param_centerline, regenerate = False)
 
-upper_bound_disc_label = int(sys.argv[2])
-lower_bound_disc_label = int(sys.argv[3])
-n_slices = int(sys.argv[4])
-# slice_select(dataset_info, upper_bound_disc_label, lower_bound_disc_label, n_slices, slicer_markup = True)
+slice_select(dataset_info, list_centerline,
+    upper_disc_number = int(sys.argv[2]), 
+    lower_disc_number = int(sys.argv[3]),
+    n_slices = int(sys.argv[4]), 
+    slicer_markup = True)
