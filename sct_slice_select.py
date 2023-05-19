@@ -134,14 +134,17 @@ def slice_select(dataset_info, list_centerline, upper_disc_number, lower_disc_nu
 
             f.write(f"\nIteration j: {j}\nCurrent index: {curr_index}\nCurrent distance between boundaries: {dist_btw_bounds}\n" + 
                 f"Ideal distance between {n_slices - j} remaining slices: {dist_btw_slices}\n\n")
-            
+                        
             dist_upper = 0
             while (dist_upper < dist_btw_slices) and (curr_index >= 0):
                 dist_upper += current_centerline.progressive_length[curr_index]
                 curr_index -= 1
-            dist_lower = dist_upper - current_centerline.progressive_length[curr_index+1]
+            dist_lower = dist_upper - current_centerline.progressive_length[curr_index + 1]
             
-            if (abs(dist_upper - dist_btw_slices) < abs(dist_lower - dist_btw_slices)):
+            if j == n_slices - 2: 
+                slice_indices.append(lower_disc_index)
+                interslice_dist.append(current_centerline.progressive_length[lower_disc_index] - interslice_dist[j-1])
+            elif (abs(dist_upper - dist_btw_slices) < abs(dist_lower - dist_btw_slices)):
                 slice_indices.append(curr_index)
                 interslice_dist.append(dist_upper)
             else:
@@ -160,19 +163,20 @@ def slice_select(dataset_info, list_centerline, upper_disc_number, lower_disc_nu
         fname_image = dataset_info['path_data'] + '/' + subject + '/' + dataset_info['data_type'] + '/' + subject + dataset_info['suffix_image'] + '.nii.gz'
         im = Image(fname_image)
         #f.write(f"========== Slice indices along z in image space ========== \n\n")
+        orient_dest = 'RPI'
         for iz in slice_indices:
 
-            phys_RPI = list(current_centerline.points[iz])
+            phys = list(current_centerline.points[iz])
             #phys_RAS = list(phys_RPI.permute(im.change_orientation('RPI'), orient_dest = 'RPI'))
 
             #plane_slice = pointNormalPlane(phys_RAS, [0,0,1], 'RPI', space = 'phys')
-            plane_slice = pointNormalPlane(phys_RPI, [0,0,1], 'RPI', space = 'phys')
-            plane_slice.write_plane_json(ofolder + f"/plane_slice_RPI_{str(iz)}.json")
-            if slicer_markup: os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py {ofolder}/markup_plane_slice_RAS_{str(iz)}.json {plane_slice.origin[0]} {plane_slice.origin[1]} {plane_slice.origin[2]} {plane_slice.normal[0]} {plane_slice.normal[1]} {plane_slice.normal[2]}')
+            plane_slice = pointNormalPlane(phys, [0,0,1], orient_dest, space = 'phys')
+            plane_slice.write_plane_json(ofolder + f"/plane_slice_{orient_dest}_{str(iz)}.json")
+            if slicer_markup: os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py {ofolder}/markup_plane_slice_{orient_dest}_{str(iz)}.json {plane_slice.origin[0]} {plane_slice.origin[1]} {plane_slice.origin[2]} {plane_slice.normal[0]} {plane_slice.normal[1]} {plane_slice.normal[2]}')
 
-            plane_orthog = get_orthog_plane(im, current_centerline, iz, orient_dest = 'RPI')
-            plane_orthog.write_plane_json(ofolder + f"/plane_orthog_RPI_{str(iz)}.json")
-            if slicer_markup: os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py {ofolder}/markup_plane_orthog_RAS_{str(iz)}.json {plane_orthog.origin[0]} {plane_orthog.origin[1]} {plane_orthog.origin[2]} {plane_orthog.normal[0]} {plane_orthog.normal[1]} {plane_orthog.normal[2]}')
+            plane_orthog = get_orthog_plane(im, current_centerline, iz, orient_dest)
+            plane_orthog.write_plane_json(ofolder + f"/plane_orthog_{orient_dest}_{str(iz)}.json")
+            if slicer_markup: os.system(f'/Applications/Slicer.app/Contents/MacOS/Slicer --no-splash --no-main-window --python-script write_slicer_markup_json.py {ofolder}/markup_plane_orthog_{orient_dest}_{str(iz)}.json {plane_orthog.origin[0]} {plane_orthog.origin[1]} {plane_orthog.origin[2]} {plane_orthog.normal[0]} {plane_orthog.normal[1]} {plane_orthog.normal[2]}')
 
 #print(f'phys RPI: {current_centerline.points[iz]}')
     #print(f'list(Coordinate(current_centerline.points[iz])): {list(Coordinate(list(current_centerline.points[iz])))}')
