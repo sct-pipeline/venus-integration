@@ -1,6 +1,6 @@
 
-from preprocessing import *
-from sct_slice_select import *
+from modules.preprocessing import *
+from modules.sct_slice_select import *
 import sys
 from spinalcordtoolbox.centerline.core import ParamCenterline
 
