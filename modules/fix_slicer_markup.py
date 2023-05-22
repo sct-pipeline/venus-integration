@@ -36,7 +36,7 @@ class pointNormalPlane(object):
                 f.write(new_plane_dict_json)
 
 fname_in = sys.argv[1]
-plane=pointNormalPlane.fromJsonFile(sys.argv[1])
+plane = pointNormalPlane.fromJsonFile(sys.argv[1])
 print(plane.normal)
 print(plane.origin)
 slicer.util.loadScene('../../../slicer_data/2022-11-16-Scene.mrml')
@@ -52,7 +52,7 @@ print(f'new plane normal: {input_Node.GetNormal()}')
 print(f'new plane origin: {input_Node.GetOrigin()}')
 myStorageNode = input_Node.CreateDefaultStorageNode()
 
-filename=f'markup_{fname_in}'
+filename = f'markup_{fname_in}'
 myStorageNode.SetFileName(filename)
 myStorageNode.WriteData(input_Node)
 myStorageNode.UnRegister(None)
